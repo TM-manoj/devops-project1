@@ -19,7 +19,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t devops-project1:1.0 .'
+                sh 'docker build -t devops-project1:1.1 .'
             }
         }
 
@@ -34,11 +34,22 @@ pipeline {
                 ]) {
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                        docker tag devops-project1:1.0 "$DOCKER_USERNAME/devops-project1:1.0"
-                        docker push "$DOCKER_USERNAME/devops-project1:1.0"
+                        docker tag devops-project1:1.1 "$DOCKER_USERNAME/devops-project1:1.1"
+                        docker push "$DOCKER_USERNAME/devops-project1:1.1"
                         docker logout
                     '''
                 }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                    kubectl set image deployment/devops-project1 \
+                    devops-project1=manojawsmail/devops-project1:1.1
+
+                    kubectl rollout status deployment/devops-project1
+                '''
             }
         }
     }
